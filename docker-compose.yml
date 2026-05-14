@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./sistema/backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    volumes:
+      - ./sistema/backend:/app  # Opcional para dev: reflete o código local
+      - backend_data:/app/data  # Para persistir o SQLite se necessário
+
+  frontend:
+    build:
+      context: ./sistema/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"  # Expõe na 5173 para simular o dev local, mas usa 80 internamente do nginx
+    depends_on:
+      - backend
+
+volumes:
+  backend_data:
