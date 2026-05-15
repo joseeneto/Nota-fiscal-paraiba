@@ -45,6 +45,7 @@ def listar_notas(db: Session = Depends(get_db)):
             "data_emissao": m.data_emissao.strftime("%d/%m/%Y") if m.data_emissao else None,
             "fornecedor": m.pessoa.razao_social if m.pessoa else "N/A",
             "fornecedor_doc": m.pessoa.cnpj_cpf if m.pessoa else "N/A",
+            "numero_nota": m.parcelas[0].identificacao.split('-')[1] if m.parcelas else "S/N",
             "classificacoes": classificacoes,
             "parcelas": parcelas,
             "total_parcelas": len(parcelas),

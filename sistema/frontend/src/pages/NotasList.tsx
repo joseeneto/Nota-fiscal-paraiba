@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
   RefreshCw,
@@ -9,7 +9,6 @@ import {
   Receipt,
   Clock,
   CheckCircle2,
-  Building2,
   Tag,
   Calendar,
   DollarSign,
@@ -31,6 +30,7 @@ interface Nota {
   data_emissao: string | null;
   fornecedor: string;
   fornecedor_doc: string;
+  numero_nota: string;
   classificacoes: string[];
   parcelas: Parcela[];
   total_parcelas: number;
@@ -99,6 +99,7 @@ function NotaCard({ nota }: { nota: Nota }) {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-white font-bold text-sm truncate">{nota.fornecedor}</span>
               <span className="text-gray-500 text-[11px] font-mono">{formatDoc(nota.fornecedor_doc)}</span>
+              <span className="bg-gray-800 text-gray-300 text-[10px] px-2 py-0.5 rounded font-mono border border-gray-700">NF {nota.numero_nota}</span>
             </div>
             <div className="flex items-center gap-3 mt-1 flex-wrap">
               {nota.classificacoes.map((c) => (
