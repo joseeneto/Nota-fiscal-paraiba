@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { UploadCloud, FileText, CheckCircle2, RefreshCw, AlertCircle, AlertTriangle, Loader2, LayoutList } from 'lucide-react';
 
-const API_BASE = 'http://localhost:8000/api/financeiro';
+const API_BASE = import.meta.env.VITE_API_URL || '/api/financeiro';
 
 export default function NfExtraction({ onGoToList }: { onGoToList?: () => void }) {
   const [file, setFile] = useState<File | null>(null);

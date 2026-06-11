@@ -30,6 +30,8 @@ interface Nota {
   data_emissao: string | null;
   fornecedor: string;
   fornecedor_doc: string;
+  faturado: string;
+  faturado_doc: string;
   numero_nota: string;
   classificacoes: string[];
   parcelas: Parcela[];
@@ -37,7 +39,7 @@ interface Nota {
   parcelas_pendentes: number;
 }
 
-const API_BASE = 'http://localhost:8000/api/financeiro';
+const API_BASE = import.meta.env.VITE_API_URL || '/api/financeiro';
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -100,6 +102,16 @@ function NotaCard({ nota }: { nota: Nota }) {
               <span className="text-white font-bold text-sm truncate">{nota.fornecedor}</span>
               <span className="text-gray-500 text-[11px] font-mono">{formatDoc(nota.fornecedor_doc)}</span>
               <span className="bg-gray-800 text-gray-300 text-[10px] px-2 py-0.5 rounded font-mono border border-gray-700">NF {nota.numero_nota}</span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                nota.tipo === 'APAGAR'
+                  ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                  : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+              }`}>
+                {nota.tipo === 'APAGAR' ? 'A PAGAR' : 'A RECEBER'}
+              </span>
+            </div>
+            <div className="text-gray-400 text-xs mt-1">
+              Faturado para: <span className="text-gray-200 font-semibold">{nota.faturado}</span> <span className="text-gray-500 font-mono text-[10px]">({formatDoc(nota.faturado_doc)})</span>
             </div>
             <div className="flex items-center gap-3 mt-1 flex-wrap">
               {nota.classificacoes.map((c) => (
@@ -193,7 +205,8 @@ export default function NotasList() {
     fetchNotas();
   }, [fetchNotas]);
 
-  const totalGeral = notas.reduce((acc, n) => acc + n.valor_total, 0);
+  const totalPagar = notas.filter(n => n.tipo === 'APAGAR').reduce((acc, n) => acc + n.valor_total, 0);
+  const totalReceber = notas.filter(n => n.tipo === 'ARECEBER').reduce((acc, n) => acc + n.valor_total, 0);
   const totalPendentes = notas.reduce((acc, n) => acc + n.parcelas_pendentes, 0);
 
   return (
@@ -202,8 +215,12 @@ export default function NotasList() {
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div className="flex items-center gap-4 flex-wrap">
           <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl px-4 py-2.5">
-            <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Total Lançado</p>
-            <p className="text-lg font-bold text-white tabular-nums">{formatCurrency(totalGeral)}</p>
+            <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Total A Pagar</p>
+            <p className="text-lg font-bold text-rose-400 tabular-nums">{formatCurrency(totalPagar)}</p>
+          </div>
+          <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl px-4 py-2.5">
+            <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Total A Receber</p>
+            <p className="text-lg font-bold text-emerald-400 tabular-nums">{formatCurrency(totalReceber)}</p>
           </div>
           <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl px-4 py-2.5">
             <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Notas</p>

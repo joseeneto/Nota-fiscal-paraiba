@@ -14,11 +14,12 @@ router = APIRouter(prefix="/api/financeiro", tags=["Financeiro"])
 
 @router.get("/notas")
 def listar_notas(db: Session = Depends(get_db)):
-    """Retorna todos os movimentos de contas com dados de fornecedor, parcelas e classificação."""
+    """Retorna todos os movimentos de contas com dados de fornecedor, faturado, parcelas e classificação."""
     movimentos = (
         db.query(MovimentoConta)
         .options(
             joinedload(MovimentoConta.pessoa),
+            joinedload(MovimentoConta.faturado),
             joinedload(MovimentoConta.parcelas),
             joinedload(MovimentoConta.classificacoes),
         )
@@ -45,6 +46,8 @@ def listar_notas(db: Session = Depends(get_db)):
             "data_emissao": m.data_emissao.strftime("%d/%m/%Y") if m.data_emissao else None,
             "fornecedor": m.pessoa.razao_social if m.pessoa else "N/A",
             "fornecedor_doc": m.pessoa.cnpj_cpf if m.pessoa else "N/A",
+            "faturado": m.faturado.razao_social if m.faturado else "N/A",
+            "faturado_doc": m.faturado.cnpj_cpf if m.faturado else "N/A",
             "numero_nota": m.parcelas[0].identificacao.split('-')[1] if m.parcelas else "S/N",
             "classificacoes": classificacoes,
             "parcelas": parcelas,
@@ -195,7 +198,8 @@ def confirmar_lancamento(dados: NotaFiscalExtraida, db: Session = Depends(get_db
             tipo=TipoMovimento.APAGAR,
             valor_total=dados.valor_total,
             data_emissao=data_emissao_dt,
-            pessoa_id=fornecedor.id
+            pessoa_id=fornecedor.id,
+            faturado_id=faturado.id
         )
         movimento.classificacoes.append(despesa)
         db.add(movimento)

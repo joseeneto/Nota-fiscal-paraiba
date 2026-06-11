@@ -64,7 +64,7 @@ def process_nf_text_with_gemini(text: str) -> dict:
     
     # Flash é veloz e ideal para extração baseada em texto JSON Model.
     model = genai.GenerativeModel(
-        model_name="gemini-flash-latest",
+        model_name="gemini-2.5-flash",
         generation_config=generation_config,
         system_instruction=SYSTEM_PROMPT
     )

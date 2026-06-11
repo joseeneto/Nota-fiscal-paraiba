@@ -8,10 +8,6 @@ __pycache__/
 env/
 .env
 
-# SQLite
-*.db
-*.sqlite3
-
 # Node / JS
 node_modules/
 dist/

@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import NfExtraction from './pages/NfExtraction';
 import NotasList from './pages/NotasList';
-import { LayoutList, FilePlus2, Banknote } from 'lucide-react';
+import RagSearch from './pages/RagSearch';
+import { LayoutList, FilePlus2, Banknote, Brain } from 'lucide-react';
 
-type Tab = 'lista' | 'lancar';
+type Tab = 'lista' | 'lancar' | 'rag';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('lista');
@@ -52,6 +53,19 @@ function App() {
                 <FilePlus2 className="w-4 h-4" />
                 Lançar Nota
               </button>
+
+              <button
+                id="tab-rag"
+                onClick={() => setActiveTab('rag')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  activeTab === 'rag'
+                    ? 'bg-white/10 text-white shadow-sm'
+                    : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                }`}
+              >
+                <Brain className="w-4 h-4" />
+                Assistente RAG
+              </button>
             </nav>
 
             {/* Active tab indicator */}
@@ -59,9 +73,11 @@ function App() {
               <span className={`text-[10px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-full border ${
                 activeTab === 'lista'
                   ? 'text-blue-400 bg-blue-500/10 border-blue-500/30'
-                  : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+                  : activeTab === 'lancar'
+                  ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
+                  : 'text-indigo-400 bg-indigo-500/10 border-indigo-500/30'
               }`}>
-                {activeTab === 'lista' ? 'Visualização' : 'Importação via IA'}
+                {activeTab === 'lista' ? 'Visualização' : activeTab === 'lancar' ? 'Importação via IA' : 'Busca Cognitiva / RAG'}
               </span>
             </div>
           </div>
@@ -71,6 +87,7 @@ function App() {
         <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8">
           {activeTab === 'lista' && <NotasList />}
           {activeTab === 'lancar' && <NfExtractionWrapper onGoToList={() => setActiveTab('lista')} />}
+          {activeTab === 'rag' && <RagSearch />}
         </main>
       </div>
     </BrowserRouter>
@@ -85,6 +102,5 @@ function NfExtractionWrapper({ onGoToList }: { onGoToList: () => void }) {
     </div>
   );
 }
-
 
 export default App;

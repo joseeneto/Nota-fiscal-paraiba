@@ -34,7 +34,7 @@ class Pessoa(Base):
     tipo = Column(String) # Pode ser múltiplos? O enunciado diz Tipo(CLIENTE-FORNECEDOR)
     ativo = Column(Boolean, default=True)
     
-    movimentos = relationship("MovimentoConta", back_populates="pessoa")
+    movimentos = relationship("MovimentoConta", foreign_keys="[MovimentoConta.pessoa_id]", back_populates="pessoa")
 
 class Classificacao(Base):
     __tablename__ = "classificacoes"
@@ -54,8 +54,10 @@ class MovimentoConta(Base):
     valor_total = Column(Float)
     data_emissao = Column(Date)
     pessoa_id = Column(Integer, ForeignKey("pessoas.id"))
+    faturado_id = Column(Integer, ForeignKey("pessoas.id"), nullable=True)
     
-    pessoa = relationship("Pessoa", back_populates="movimentos")
+    pessoa = relationship("Pessoa", foreign_keys=[pessoa_id], back_populates="movimentos")
+    faturado = relationship("Pessoa", foreign_keys=[faturado_id])
     classificacoes = relationship("Classificacao", secondary=movimento_classificacao, back_populates="movimentos")
     parcelas = relationship("ParcelaConta", back_populates="movimento", cascade="all, delete-orphan")
 
@@ -70,3 +72,12 @@ class ParcelaConta(Base):
     status = Column(String, default="PENDENTE")
     
     movimento = relationship("MovimentoConta", back_populates="parcelas")
+
+class DocumentEmbedding(Base):
+    __tablename__ = "document_embeddings"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    movimento_id = Column(Integer, ForeignKey("movimentocontas.id", ondelete="CASCADE"), unique=True)
+    text_hash = Column(String)
+    embedding_json = Column(String)
+
