@@ -6,7 +6,7 @@ from typing import List, Literal
 from database import get_db
 from services.rag_service import ask_rag_system
 
-router = APIRouter(prefix="/api/financeiro/rag", tags=["RAG"])
+router = APIRouter(prefix="/api/financeiro/rag", tags=["RAG"], redirect_slashes=False)
 
 class RagRequest(BaseModel):
     pergunta: str

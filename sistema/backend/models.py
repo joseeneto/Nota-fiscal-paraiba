@@ -55,6 +55,7 @@ class MovimentoConta(Base):
     data_emissao = Column(Date)
     pessoa_id = Column(Integer, ForeignKey("pessoas.id"))
     faturado_id = Column(Integer, ForeignKey("pessoas.id"), nullable=True)
+    ativo = Column(Boolean, default=True)
     
     pessoa = relationship("Pessoa", foreign_keys=[pessoa_id], back_populates="movimentos")
     faturado = relationship("Pessoa", foreign_keys=[faturado_id])

@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers.finance_router import router as finance_router
 from routers.rag_router import router as rag_router
+from routers.pessoas_router import router as pessoas_router
+from routers.classificacoes_router import router as classificacoes_router
 
 from database import engine, Base
 import models
@@ -23,6 +25,8 @@ app.add_middleware(
 # Adiciona ao app central o roteador que criamos.
 app.include_router(finance_router)
 app.include_router(rag_router)
+app.include_router(pessoas_router)
+app.include_router(classificacoes_router)
 
 @app.get("/")
 def read_root():

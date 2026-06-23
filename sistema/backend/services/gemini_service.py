@@ -1,13 +1,17 @@
 import os
 import json
-import google.generativeai as genai
+import time
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 
 load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
+# Inicializa o cliente da nova SDK google-genai
+client = None
 if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+    client = genai.Client(api_key=GEMINI_API_KEY)
 
 SYSTEM_PROMPT = """
 Você é um assistente financeiro especializado em análise de Notas Fiscais brasileiras (NF-e/NFS-e).
@@ -55,21 +59,36 @@ Se falhar em encontrar qualquer outro campo obrigatório, coloque texto vazio ""
 """
 
 def process_nf_text_with_gemini(text: str) -> dict:
-    if not GEMINI_API_KEY:
+    if not client:
         raise ValueError("Chave da API do Gemini (GEMINI_API_KEY) não está configurada no .env!")
-        
-    generation_config = genai.GenerationConfig(
-        response_mime_type="application/json"
-    )
     
-    # Flash é veloz e ideal para extração baseada em texto JSON Model.
-    model = genai.GenerativeModel(
-        model_name="gemini-2.5-flash",
-        generation_config=generation_config,
-        system_instruction=SYSTEM_PROMPT
-    )
-    
-    response = model.generate_content(text)
+    # Retry com backoff para erros 429
+    max_retries = 5
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=text,
+                config=types.GenerateContentConfig(
+                    system_instruction=SYSTEM_PROMPT,
+                    response_mime_type="application/json",
+                    temperature=0.1
+                )
+            )
+            break
+        except Exception as e:
+            error_str = str(e)
+            if ("429" in error_str or "ResourceExhausted" in error_str or "quota" in error_str.lower()):
+                wait_time = min(2 ** attempt * 2, 30)
+                print(f"[Gemini] Rate limit atingido (tentativa {attempt + 1}/{max_retries}). Aguardando {wait_time}s...")
+                time.sleep(wait_time)
+                if attempt == max_retries - 1:
+                    raise ValueError(
+                        f"Limite de requisições da API Gemini excedido após {max_retries} tentativas. "
+                        f"Aguarde alguns segundos e tente novamente."
+                    )
+            else:
+                raise
     
     try:
         data = json.loads(response.text)

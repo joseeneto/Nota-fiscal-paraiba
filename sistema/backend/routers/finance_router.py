@@ -10,22 +10,32 @@ from services.pdf_service import extract_text_from_pdf
 from services.gemini_service import process_nf_text_with_gemini
 
 # Definimos o router do fastapi
-router = APIRouter(prefix="/api/financeiro", tags=["Financeiro"])
+router = APIRouter(prefix="/api/financeiro", tags=["Financeiro"], redirect_slashes=False)
 
 @router.get("/notas")
-def listar_notas(db: Session = Depends(get_db)):
-    """Retorna todos os movimentos de contas com dados de fornecedor, faturado, parcelas e classificação."""
-    movimentos = (
+def listar_notas(buscar: str = None, db: Session = Depends(get_db)):
+    """Retorna todos os movimentos de contas ativos com dados de fornecedor, faturado, parcelas e classificação."""
+    query = (
         db.query(MovimentoConta)
+        .filter(MovimentoConta.ativo == True)
         .options(
             joinedload(MovimentoConta.pessoa),
             joinedload(MovimentoConta.faturado),
             joinedload(MovimentoConta.parcelas),
             joinedload(MovimentoConta.classificacoes),
         )
-        .order_by(MovimentoConta.id.desc())
-        .all()
     )
+    
+    if buscar:
+        termo = f"%{buscar}%"
+        # Search by Fornecedor CNPJ or Razao Social, and Tipo
+        query = query.join(MovimentoConta.pessoa).filter(
+            (Pessoa.razao_social.ilike(termo)) |
+            (Pessoa.cnpj_cpf.ilike(termo)) |
+            (MovimentoConta.tipo.ilike(termo))
+        )
+        
+    movimentos = query.order_by(MovimentoConta.id.desc()).all()
     resultado = []
     for m in movimentos:
         parcelas = [
@@ -238,3 +248,14 @@ def confirmar_lancamento(dados: NotaFiscalExtraida, db: Session = Depends(get_db
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Erro ao salvar no banco: {str(e)}")
+
+@router.delete("/notas/{nota_id}")
+def excluir_nota(nota_id: int, db: Session = Depends(get_db)):
+    movimento = db.query(MovimentoConta).filter(MovimentoConta.id == nota_id, MovimentoConta.ativo == True).first()
+    if not movimento:
+        raise HTTPException(status_code=404, detail="Nota/Conta não encontrada")
+        
+    # Exclusão lógica
+    movimento.ativo = False
+    db.commit()
+    return {"message": "Nota/Conta excluída com sucesso (status inativo)"}

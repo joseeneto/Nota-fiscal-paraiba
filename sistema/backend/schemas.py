@@ -52,3 +52,51 @@ class NotaLancadaList(BaseModel):
     data_emissao: str
     classificacao: str
     qtd_parcelas: int
+
+# Novos schemas para Pessoas
+class PessoaBase(BaseModel):
+    razao_social: str
+    cnpj_cpf: str
+    tipo: str
+
+class PessoaCreate(PessoaBase):
+    pass
+
+class PessoaUpdate(BaseModel):
+    razao_social: str = None
+    cnpj_cpf: str = None
+    tipo: str = None
+
+class PessoaOut(PessoaBase):
+    id: int
+    ativo: bool
+
+    class Config:
+        from_attributes = True
+
+# Novos schemas para Classificacoes
+class ClassificacaoBase(BaseModel):
+    descricao: str
+    tipo: str
+
+class ClassificacaoCreate(ClassificacaoBase):
+    pass
+
+class ClassificacaoUpdate(BaseModel):
+    descricao: str = None
+    tipo: str = None
+
+class ClassificacaoOut(ClassificacaoBase):
+    id: int
+    ativo: bool
+
+    class Config:
+        from_attributes = True
+
+# Schema para Atualização de Conta (MovimentoConta)
+class MovimentoContaUpdate(BaseModel):
+    tipo: str = None
+    valor_total: float = None
+    data_emissao: str = None
+    pessoa_id: int = None
+    faturado_id: int = None
